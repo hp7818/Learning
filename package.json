@@ -1,0 +1,39 @@
+{
+  "name": "learning",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint \"src/**/*.{js,jsx}\"",
+    "lint:fix": "eslint \"src/**/*.{js,jsx}\" --fix",
+    "format": "prettier --write .",
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.0.1",
+    "@mui/material": "^9.0.1",
+    "better-sqlite3": "^12.10.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "multer": "^2.1.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-router-dom": "^7.16.0",
+    "recharts": "^3.8.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
+    "vite": "^8.0.12"
+  }
+}
