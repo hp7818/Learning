@@ -33,17 +33,19 @@ export default function CategoryManagement() {
       setTotal(data.total || 0);
     } catch (e) {
       console.error("Error loading categories:", e);
+      setCategories([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { 
-    fetchCategories(); 
+  useEffect(() => {
+    fetchCategories();
   }, [search, page]);
 
   const handleAddCategory = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     if (!mainName.trim()) return setError("Main category name required");
     if (!subName.trim()) return setError("Sub-Category name required");
 
@@ -51,10 +53,10 @@ export default function CategoryManagement() {
       const res = await fetch(`${API}/api/categories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          mainName: mainName.trim(), 
-          subName: subName.trim(), 
-          remark: remark.trim() || null 
+        body: JSON.stringify({
+          mainName: mainName.trim(),
+          subName: subName.trim(),
+          remark: remark.trim() || null
         }),
       });
 
@@ -65,11 +67,11 @@ export default function CategoryManagement() {
         return;
       }
 
-      setMainName(""); 
-      setSubName(""); 
-      setRemark(""); 
+      setMainName("");
+      setSubName("");
+      setRemark("");
       setError("");
-      setAddOpen(false); 
+      setAddOpen(false);
       setPage(1);
       fetchCategories();
     } catch (e) {
@@ -80,8 +82,8 @@ export default function CategoryManagement() {
   const handleDelete = async (main_name, sub_name) => {
     if (!window.confirm(`Are you sure you want to delete the classification combination: ${main_name} > ${sub_name}?`)) return;
     try {
-      const res = await fetch(`${API}/api/categories?mainName=${encodeURIComponent(main_name)}&subName=${encodeURIComponent(sub_name)}`, { 
-        method: "DELETE" 
+      const res = await fetch(`${API}/api/categories?mainName=${encodeURIComponent(main_name)}&subName=${encodeURIComponent(sub_name)}`, {
+        method: "DELETE"
       });
       if (res.ok) {
         setPage(1);
@@ -96,8 +98,8 @@ export default function CategoryManagement() {
   };
 
   return (
-    <Box sx={{ width: "100%", p: 0.5, boxSizing: "border-box" }}>
-      <Box sx={{ display: "flex", gap: 2, mb: 2, alignItems: "center" }}>
+    <Box sx={{ width: "100%", height: "calc(100vh - 150px)", display: "flex", flexDirection: "column", gap: 2, p: 1, boxSizing: "border-box" }}>
+      <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
         <TextField
           label="Search Main Category, Sub Category or Remarks..."
           value={search}
@@ -105,7 +107,7 @@ export default function CategoryManagement() {
           sx={{ flexGrow: 1 }}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
         />
-        <Button variant="contained" onClick={() => { setError(""); setAddOpen(true); }}>
+        <Button variant="contained" onClick={() => { setError(""); setAddOpen(true); }} sx={{ minWidth: "160px", height: "40px" }}>
           Add Classification
         </Button>
       </Box>
@@ -113,15 +115,15 @@ export default function CategoryManagement() {
       {loading ? (
         <Box sx={{ textAlign: "center", py: 4 }}><CircularProgress /></Box>
       ) : (
-        <TableContainer component={Paper} variant="outlined">
-          <Table size="small">
+        <TableContainer component={Paper} variant="outlined"  sx={{ flexGrow: 1, overflowY: "auto" }}>
+          <Table size="small" stickyHeader sx={{ tableLayout: "fixed", width: "100%" }}>
             <TableHead sx={{ bgcolor: "action.hover" }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: "bold" }} width="60">No.</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>Category Name</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>Sub Category</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>Remarks</TableCell>
-                <TableCell width="90" align="center" sx={{ fontWeight: "bold" }}>Actions</TableCell>
+                <TableCell style={{ width: "50px", fontWeight: "bold" }}>No.</TableCell>
+                <TableCell style={{ width: "250px", fontWeight: "bold" }}>Category Name</TableCell>
+                <TableCell style={{ width: "250px", fontWeight: "bold" }}>Sub Category</TableCell>
+                <TableCell style={{ width: "350px", fontWeight: "bold" }}>Remarks</TableCell>
+                <TableCell style={{ width: "100px", fontWeight: "bold", textAlign: "center" }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -133,7 +135,7 @@ export default function CategoryManagement() {
                     <TableCell sx={{ color: c.sub_name ? "text.primary" : "text.disabled" }}>
                       {c.sub_name || "—"}
                     </TableCell>
-                    <TableCell color="text.secondary">{c.remark || "—"}</TableCell>
+                    <TableCell color="text.secondary" style={{ maxWidth: "350px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"}}>{c.remark || "—"}</TableCell>
                     <TableCell align="center">
                       <IconButton size="small" color="error" onClick={() => handleDelete(c.main_name, c.sub_name)}>
                         <DeleteIcon fontSize="small" />
@@ -157,11 +159,11 @@ export default function CategoryManagement() {
 
       {totalPages > 1 && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-          <Pagination 
-            count={totalPages} 
-            page={page} 
-            onChange={(e, v) => setPage(v)} 
-            color="primary" 
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={(e, v) => setPage(v)}
+            color="primary"
             size="small"
           />
         </Box>
@@ -178,35 +180,35 @@ export default function CategoryManagement() {
                 ⚠️ {error}
               </Typography>
             )}
-            
-            <TextField 
-              label="Category Name" 
-              fullWidth 
-              size="small" 
-              value={mainName} 
-              onChange={(e) => setMainName(e.target.value)} 
+
+            <TextField
+              label="Category Name"
+              fullWidth
+              size="small"
+              value={mainName}
+              onChange={(e) => setMainName(e.target.value)}
               placeholder="e.g., HR & Operations"
               required
             />
 
-            <TextField 
-              label="Sub-Category" 
-              fullWidth 
-              size="small" 
-              value={subName} 
-              onChange={(e) => setSubName(e.target.value)} 
+            <TextField
+              label="Sub-Category"
+              fullWidth
+              size="small"
+              value={subName}
+              onChange={(e) => setSubName(e.target.value)}
               placeholder="e.g., Onboarding"
               required
             />
 
-            <TextField 
-              label="Remarks / Description" 
-              fullWidth 
+            <TextField
+              label="Remarks / Description"
+              fullWidth
               size="small"
-              multiline 
-              rows={2} 
-              value={remark} 
-              onChange={(e) => setRemark(e.target.value)} 
+              multiline
+              rows={2}
+              value={remark}
+              onChange={(e) => setRemark(e.target.value)}
             />
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2 }}>

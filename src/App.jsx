@@ -13,11 +13,11 @@ import DocumentManagement from "./DocumentManagement";
 
 function App() {
   const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("darkMode") === "true"
+    sessionStorage.getItem("darkMode") === "true"
   );
 
   useEffect(() => {
-    localStorage.setItem("darkMode", darkMode);
+    sessionStorage.setItem("darkMode", darkMode);
   }, [darkMode]);
 
   const theme = createTheme({
@@ -27,11 +27,11 @@ function App() {
   });
 
   const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem("login") === "true"
+    sessionStorage.getItem("login") === "true"
   );
 
   useEffect(() => {
-    localStorage.setItem("login", isLoggedIn);
+    sessionStorage.setItem("login", isLoggedIn);
   }, [isLoggedIn]);
 
   return (

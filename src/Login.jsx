@@ -43,8 +43,8 @@ export default function Login({ darkMode, setDarkMode, setIsLoggedIn }) {
 
       if (data.status === "success") {
         // Enforce persistence criteria across browser sessions
-        localStorage.setItem("login", "true");
-        localStorage.setItem("username", data.username);
+        sessionStorage.setItem("login", "true");
+        sessionStorage.setItem("username", data.username);
 
         setIsLoggedIn(true);
         navigate("/dashboard");

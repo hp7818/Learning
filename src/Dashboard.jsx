@@ -42,8 +42,8 @@ export default function Dashboard({ darkMode, setDarkMode, setIsLoggedIn }) {
   const currentUsername = localStorage.getItem("username") || "Admin";
 
   const handleLogout = () => {
-    localStorage.removeItem("login");
-    localStorage.removeItem("username");
+    sessionStorage.removeItem("login");
+    sessionStorage.removeItem("username");
     setIsLoggedIn(false);
     navigate("/");
   };
