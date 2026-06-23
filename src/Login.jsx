@@ -8,11 +8,15 @@ import {
   Box,
   Switch,
   FormControlLabel,
+  FormControl, // Added for language picker
+  Select,      // Added for language picker
+  MenuItem,    // Added for language picker
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next"; // 1. Import translation hook
 
-export default function Login({ darkMode, setDarkMode, setIsLoggedIn }) {
+export default function Login({ darkMode, setDarkMode, setIsLoggedIn, currentLanguage, changeLanguage }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,6 +24,7 @@ export default function Login({ darkMode, setDarkMode, setIsLoggedIn }) {
   
   const navigate = useNavigate();
   const theme = useTheme();
+  const { t } = useTranslation(); // 2. Initialize hook
   const errorId = "login-error";
 
   const handleLogin = async (e) => {
@@ -27,7 +32,7 @@ export default function Login({ darkMode, setDarkMode, setIsLoggedIn }) {
     setError("");
     
     if (!username.trim() || !password.trim()) {
-      setError("Please fill out both username and password fields.");
+      setError(t("login.errorEmpty", "Please fill out both username and password fields."));
       return;
     }
 
@@ -42,18 +47,16 @@ export default function Login({ darkMode, setDarkMode, setIsLoggedIn }) {
       const data = await response.json();
 
       if (data.status === "success") {
-        // Enforce persistence criteria across browser sessions
         sessionStorage.setItem("login", "true");
         sessionStorage.setItem("username", data.username);
-
         setIsLoggedIn(true);
         navigate("/dashboard");
       } else {
-        setError(data.error || "Invalid username or password credentials.");
+        setError(data.error || t("login.errorInvalid", "Invalid username or password credentials."));
       }
     } catch (error) {
       console.error("Login error:", error);
-      setError("Failed to connect to authentication server.");
+      setError(t("login.errorServer", "Failed to connect to authentication server."));
     } finally {
       setLoading(false);
     }
@@ -72,7 +75,20 @@ export default function Login({ darkMode, setDarkMode, setIsLoggedIn }) {
             : "linear-gradient(#82cfff, #b3e5ff)",
       }}
     >
-      <Box sx={{ position: "absolute", top: 16, right: 16 }}>
+      <Box sx={{ position: "absolute", top: 16, right: 16, display: "flex", alignItems: "center", gap: 2 }}>
+        
+        {/* Universal Dropdown UI Selector Component */}
+        <FormControl size="small" sx={{ minWidth: 100 }}>
+          <Select
+            value={currentLanguage || 'en'}
+            onChange={(e) => changeLanguage(e.target.value)}
+          >
+            <MenuItem value="en">English</MenuItem>
+            <MenuItem value="my">မြန်မာ</MenuItem>
+            <MenuItem value="ja">日本語</MenuItem>
+          </Select>
+        </FormControl>
+
         <FormControlLabel
           control={
             <Switch
@@ -81,22 +97,22 @@ export default function Login({ darkMode, setDarkMode, setIsLoggedIn }) {
               inputProps={{ "aria-label": "Toggle dark mode" }}
             />
           }
-          label="Dark mode"
+          label={t("login.darkModeLabel", "Dark mode")}
         />
       </Box>
 
       <Card sx={{ p: 3, width: 320 }}>
         <Typography variant="h5" component="h1" gutterBottom sx={{ color: "text.primary" }}>
-          Admin Portal
+          {t("login.title", "Admin Portal")}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Sign in to continue
+          {t("login.subtitle", "Sign in to continue")}
         </Typography>
 
         <form onSubmit={handleLogin} noValidate>
           <TextField
             fullWidth
-            label="Username"
+            label={t("login.username", "Username")}
             name="username"
             margin="normal"
             error={!!error}
@@ -106,7 +122,7 @@ export default function Login({ darkMode, setDarkMode, setIsLoggedIn }) {
           />
           <TextField
             fullWidth
-            label="Password"
+            label={t("login.password", "Password")}
             type="password"
             name="password"
             margin="normal"
@@ -123,7 +139,7 @@ export default function Login({ darkMode, setDarkMode, setIsLoggedIn }) {
             disabled={loading}
             sx={{ mt: 1 }}
           >
-            {loading ? <CircularProgress size={20} color="inherit" /> : "Login"}
+            {loading ? <CircularProgress size={20} color="inherit" /> : t("login.submitButton", "Login")}
           </Button>
 
           {error && (

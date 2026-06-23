@@ -13,6 +13,9 @@ import {
   Typography,
   Avatar,
   Divider,
+  FormControl, // <-- Added missing import
+  Select,      // <-- Added missing import
+  MenuItem,    // <-- Already present, but kept safe
 } from "@mui/material";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -27,15 +30,16 @@ import PeopleIcon from "@mui/icons-material/People";
 import { useTheme } from "@mui/material/styles";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { useState } from "react";
+import { useTranslation } from "react-i18next"; // <-- Import hook
 
-export default function Dashboard({ darkMode, setDarkMode, setIsLoggedIn }) {
+export default function Dashboard({ currentLanguage, changeLanguage, darkMode, setDarkMode, setIsLoggedIn }) {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation(); // <-- Initialize translation function
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [open, setOpen] = useState(!isMobile);
-  
-  // Clean Variable Layout Calculation boundaries
+
   const DRAWER_MAX_WIDTH = 240;
   const DRAWER_MIN_WIDTH = 70;
   const drawerWidth = isMobile ? 0 : (open ? DRAWER_MAX_WIDTH : DRAWER_MIN_WIDTH);
@@ -48,24 +52,22 @@ export default function Dashboard({ darkMode, setDarkMode, setIsLoggedIn }) {
     navigate("/");
   };
 
+  // Dynamically pull title keys from your translation JSON files
   const getPageTitle = () => {
     switch (location.pathname) {
-      case "/dashboard": return "Dashboard Overview";
-      case "/users": return "User Management Dashboard";
-      case "/roles": return "Role Configuration Panels";
-      case "/categories": return "Category Registry Modules";
-      case "/documents": return "Secure Document Vault";
-      case "/info": return "System Information Log";
-      case "/help": return "Help Desk & Support Center";
-      default: return "Management Terminal";
+      case "/dashboard": return t("titles.dashboard", "Dashboard Overview");
+      case "/users": return t("titles.users", "User Management Dashboard");
+      case "/roles": return t("titles.roles", "Role Configuration Panels");
+      case "/categories": return t("titles.categories", "Category Registry Modules");
+      case "/documents": return t("titles.documents", "Secure Document Vault");
+      case "/info": return t("titles.info", "System Information Log");
+      case "/help": return t("titles.help", "Help Desk & Support Center");
+      default: return t("titles.terminal", "Management Terminal");
     }
   };
 
   return (
-    // Base Canvas: Forces viewport containment, preventing overflow breaks
     <Box sx={{ display: "flex", width: "100vw", height: "100vh", overflow: "hidden" }}>
-
-      {/* ---------- PERSISTENT SIDEBAR ---------- */}
       <Drawer
         variant={isMobile ? "temporary" : "permanent"}
         open={open}
@@ -101,28 +103,28 @@ export default function Dashboard({ darkMode, setDarkMode, setIsLoggedIn }) {
           {open && (
             <Box sx={{ overflow: "hidden" }}>
               <Typography variant="subtitle2" fontWeight="bold" noWrap>{currentUsername}</Typography>
-              <Typography variant="caption" color="text.secondary">Active Session</Typography>
+              <Typography variant="caption" color="text.secondary">{t("common.activeSession", "Active Session")}</Typography>
             </Box>
           )}
         </Box>
         <Divider />
         <List sx={{ py: 0 }}>
           {[
-            { path: "/dashboard", icon: DashboardIcon, text: "Dashboard" },
-            { path: "/users", icon: PeopleIcon, text: "User Management" },
-            { path: "/roles", icon: SecurityIcon, text: "Role Management" },
-            { path: "/categories", icon: CategoryIcon, text: "Category Management" },
-            { path: "/documents", icon: DescriptionIcon, text: "Document Management" },
-            { path: "/info", icon: InfoIcon, text: "Info" },
-            { path: "/help", icon: HelpIcon, text: "Help" },
+            { path: "/dashboard", icon: DashboardIcon, text: t("menu.dashboard", "Dashboard") },
+            { path: "/users", icon: PeopleIcon, text: t("menu.users", "User Management") },
+            { path: "/roles", icon: SecurityIcon, text: t("menu.roles", "Role Management") },
+            { path: "/categories", icon: CategoryIcon, text: t("menu.categories", "Category Management") },
+            { path: "/documents", icon: DescriptionIcon, text: t("menu.documents", "Document Management") },
+            { path: "/info", icon: InfoIcon, text: t("menu.info", "Info") },
+            { path: "/help", icon: HelpIcon, text: t("menu.help", "Help") },
           ].map((item) => (
             <ListItem
               key={item.path}
               button
               onClick={() => { navigate(item.path); if (isMobile) setOpen(false); }}
               selected={location.pathname === item.path}
-              sx={{ 
-                py: 1.2, 
+              sx={{
+                py: 1.2,
                 px: open ? 2 : "auto",
                 justifyContent: open ? "initial" : "center"
               }}
@@ -136,15 +138,13 @@ export default function Dashboard({ darkMode, setDarkMode, setIsLoggedIn }) {
         </List>
       </Drawer>
 
-      {/* ---------- ACTION VIEWPORT FRAME ---------- */}
-      <Box 
-        sx={{ 
-          display: "flex", 
-          flexDirection: "column", 
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
           height: "100vh",
-          // Perfect math constraint matching the sidebar width
           width: isMobile ? "100%" : `calc(100% - ${drawerWidth}px)`,
-          minWidth: 0, 
+          minWidth: 0,
           overflow: "hidden",
           transition: theme.transitions.create(["width"], {
             easing: theme.transitions.easing.sharp,
@@ -152,32 +152,38 @@ export default function Dashboard({ darkMode, setDarkMode, setIsLoggedIn }) {
           }),
         }}
       >
-        {/* Universal Application Bar */}
         <AppBar position="static" elevation={0} sx={{ bgcolor: theme.palette.mode === "dark" ? "background.paper" : "primary.main", color: theme.palette.mode === "dark" ? "text.primary" : "white" }}>
           <Toolbar sx={{ display: "flex", justifyContent: "space-between", minHeight: 64 }}>
             <Typography variant="h6" fontWeight="600" sx={{ fontSize: "1.1rem" }}>{getPageTitle()}</Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              
+              {/* Restyled Language Picker to cleanly blend into the Mui AppBar */}
+              <FormControl size="small" sx={{ minWidth: 110 }}>
+                <Select
+                  value={currentLanguage || 'en'}
+                  onChange={(e) => changeLanguage(e.target.value)}
+                  sx={{ 
+                    color: theme.palette.mode === "dark" ? "text.primary" : "white",
+                    '.MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.5)" },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: "white" },
+                    '.MuiSelect-icon': { color: theme.palette.mode === "dark" ? "text.primary" : "white" }
+                  }}
+                >
+                  <MenuItem value="en">English</MenuItem>
+                  <MenuItem value="my">မြန်မာ</MenuItem>
+                  <MenuItem value="ja">日本語</MenuItem>
+                </Select>
+              </FormControl>
+
               <Switch size="small" checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
-              <IconButton color="inherit" onClick={handleLogout} title="Logout" size="small">
+              <IconButton color="inherit" onClick={handleLogout} title={t("common.logout", "Logout")} size="small">
                 <ExitToAppIcon />
               </IconButton>
             </Box>
           </Toolbar>
         </AppBar>
 
-        {/* Scrollable Document Container Workspace */}
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            overflowY: "auto", // Confines vertical scrolls safely inside the frame
-            overflowX: "hidden", // Permanently terminates horizontal tracking spills
-            p: 3, 
-            bgcolor: theme.palette.mode === "dark" ? "background.default" : "#fbfbfb",
-            boxSizing: "border-box"
-          }}
-        >
-          {/* React Router Mount Window */}
+        <Box component="main" sx={{ flexGrow: 1, overflowY: "auto", overflowX: "hidden", p: 3, bgcolor: theme.palette.mode === "dark" ? "background.default" : "#fbfbfb", boxSizing: "border-box" }}>
           <Outlet />
         </Box>
       </Box>

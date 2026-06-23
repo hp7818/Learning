@@ -1,0 +1,95 @@
+{
+  "common": {
+    "logout": "ログアウト",
+    "activeSession": "アクティブなセッション"
+  },
+  "login": {
+    "title": "管理者ポータル",
+    "subtitle": "サインインして続行してください",
+    "username": "ユーザー名",
+    "password": "パスワード",
+    "submitButton": "ログイン",
+    "darkModeLabel": "ダークモード",
+    "errorEmpty": "ユーザー名とパスワードの両方を入力してください。"
+  },
+  "titles": {
+    "dashboard": "ダッシュボード概要",
+    "users": "ユーザー管理ダッシュボード",
+    "roles": "ロール構成パネル",
+    "categories": "カテゴリ登録モジュール",
+    "documents": "セキュア ドキュメント ボールト",
+    "info": "システム情報ログ",
+    "help": "ヘルプデスク＆サポートセンター"
+  },
+  "menu": {
+    "dashboard": "ダッシュボード",
+    "users": "ユーザー管理",
+    "roles": "ロール管理",
+    "categories": "カテゴリ管理",
+    "documents": "ドキュメント管理",
+    "info": "情報",
+    "help": "ヘルプ"
+  },
+  "dashboard": {
+    "welcome": "ようこそ、{{name}}さん！",
+    "subtitle": "こちらはシステム概要および分析ダッシュボードです。",
+    "totalUsers": "総ユーザー数",
+    "totalRoles": "総役割数",
+    "categories": "カテゴリー数",
+    "documents": "ドキュメント数",
+    "uploadTrend": "ドキュメントアップロード傾向（過去7日間）",
+    "roleDistribution": "ユーザー役割分布",
+    "recentActivity": "最近のドキュメントアクティビティ",
+    "colDocName": "ドキュメント名",
+    "colUploadedBy": "アップロード者",
+    "colDate": "日付",
+    "noActivity": "最近のアクティビティは見つかりませんでした"
+  },
+  "userManagement": {
+    "title": "ユーザー管理",
+    "addUser": "ユーザーを追加",
+    "searchPlaceholder": "ユーザーを検索...",
+    "colID": "ユーザーID",
+    "colNo": "番号",
+    "colName": "名前",
+    "colEmail": "メールアドレス",
+    "colRole": "役割",
+    "colActions": "操作",
+    "noUsers": "ユーザーが見つかりません"
+  },
+  "roleManagement": {
+    "title": "役割・権限管理",
+    "addRole": "役割を追加",
+    "searchPlaceholder": "ロールを検索...",
+    "colNo": "番号",
+    "colID": "ロールID",
+    "colRoleName": "役割名",
+    "colPermissions": "権限",
+    "colActions": "操作"
+  },
+  "categoryManagement": {
+    "title": "カテゴリ管理",
+    "searchPlaceholder": "メインカテゴリ、サブカテゴリ、または備考で検索...",
+    "addCategory": "カテゴリを追加",
+    "colNo": "番号",
+    "colCategoryName": "カテゴリ名",
+    "colSubCategory": "サブカテゴリ名",
+    "colDescription": "説明",
+    "colActions": "操作"
+  },
+  "documentManagement": {
+    "title": "文書管理",
+    "uploadDocument": "文書をアップロード",
+    "filterPlaceholder": "カテゴリでフィルター",
+    "searchPlaceholder": "文書タイトル、アップロード者、またはタイプで検索...",
+    "colNo": "No.",
+    "colDocName": "文書名",
+    "colCategoryName": "カテゴリ名",
+    "colVersion": "バージョン",
+    "colUploadedBy": "アップロード者",
+    "colUpdatedBy": "更新者",
+    "colCreatedDate": "作成日",
+    "colUpdatedDate": "更新日",
+    "colActions": "操作"
+  }
+}

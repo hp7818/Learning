@@ -1,0 +1,95 @@
+{
+  "common": {
+    "logout": "Logout",
+    "activeSession": "Active Session"
+  },
+  "login": {
+    "title": "Admin Portal",
+    "subtitle": "Sign in to continue",
+    "username": "Username",
+    "password": "Password",
+    "submitButton": "Login",
+    "darkModeLabel": "Dark mode",
+    "errorEmpty": "Please fill out both username and password fields."
+  },
+  "titles": {
+    "dashboard": "Dashboard Overview",
+    "users": "User Management Dashboard",
+    "roles": "Role Configuration Panels",
+    "categories": "Category Registry Modules",
+    "documents": "Secure Document Vault",
+    "info": "System Information Log",
+    "help": "Help Desk & Support Center"
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "users": "User Management",
+    "roles": "Role Management",
+    "categories": "Category Management",
+    "documents": "Document Management",
+    "info": "Info",
+    "help": "Help"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {{name}}!",
+    "subtitle": "Here is your system overview and analytics dashboard.",
+    "totalUsers": "Total Users",
+    "totalRoles": "Total Roles",
+    "categories": "Categories",
+    "documents": "Documents",
+    "uploadTrend": "Document Upload Trend (Last 7 Days)",
+    "roleDistribution": "User Role Distribution",
+    "recentActivity": "Recent Document Activity",
+    "colDocName": "Document Name",
+    "colUploadedBy": "Uploaded By",
+    "colDate": "Date",
+    "noActivity": "No recent activity found"
+  },
+  "userManagement": {
+    "title": "User Management",
+    "addUser": "Add User",
+    "searchPlaceholder": "Search users...",
+    "colNo": "No.",
+    "colID": "User ID",
+    "colName": "Username",
+    "colEmail": "Email",
+    "colRole": "Role",
+    "colActions": "Actions",
+    "noUsers": "No users found"
+  },
+  "roleManagement": {
+    "title": "Role Management",
+    "addRole": "Add Role",
+    "searchPlaceholder": "Search role...",
+    "colNo": "No.",
+    "colID": "Role ID",
+    "colRoleName": "Role Name",
+    "colPermissions": "Permissions",
+    "colActions": "Actions"
+  },
+  "categoryManagement": {
+    "title": "Category Management",
+    "searchPlaceholder": "Search Main Category, Sub Category or Remarks...",
+    "addCategory": "Add Category",
+    "colNo": "No.",
+    "colCategoryName": "Category Name",
+    "colSubCategory": "Sub Category Name",
+    "colDescription": "Description",
+    "colActions": "Actions"
+  },
+  "documentManagement": {
+    "title": "Document Management",
+    "uploadDocument": "Upload Document",
+    "filterPlaceholder": "Filter by Category",
+    "searchPlaceholder": "Search via Document Title, uploader, or type...",
+    "colNo": "No.",
+    "colDocName": "Document Name",
+    "colCategoryName": "Category Name",
+    "colVersion": "Version",
+    "colUploadedBy": "Uploaded By",
+    "colUpdatedBy": "Updated By",
+    "colCreatedDate": "Created Date",
+    "colUpdatedDate": "Updated Date",
+    "colActions": "Actions"
+  }
+}

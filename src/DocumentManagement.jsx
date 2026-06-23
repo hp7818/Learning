@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useTranslation } from "react-i18next";
 
 const DOCUMENT_TYPES = [
     "Policies & Procedures", "Templates & Forms", "Contracts & Agreements",
@@ -15,6 +16,9 @@ const DOCUMENT_TYPES = [
 
 export default function DocumentManagement() {
     const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+    const { t } = useTranslation();
+
     const limit = 10;
     const currentUsername = localStorage.getItem("username") || "Admin";
 
@@ -149,7 +153,7 @@ export default function DocumentManagement() {
             <Box sx={{ display: "flex", gap: 2, alignItems: "center", width: "100%" }}>
                 <TextField
                     select
-                    label="Filter by Category"
+                    label={t("documentManagement.filterPlaceholder", "Filter by Category")}
                     value={filterCategory}
                     onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }}
                     size="small"
@@ -167,7 +171,7 @@ export default function DocumentManagement() {
                 </TextField>
 
                 <TextField
-                    label="Search via Document Title, uploader, or type..."
+                    label={t("documentManagement.searchPlaceholder", "Search via Document Title, uploader, or type...")}
                     value={search}
                     onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                     size="small"
@@ -175,8 +179,8 @@ export default function DocumentManagement() {
                     sx={{ bgcolor: "background.paper", flexGrow: 1 }}
                 />
 
-                <Button variant="contained" onClick={() => setUploadOpen(true)} sx={{ minWidth: "160px", height: "40px" }}>
-                    Upload File
+                <Button variant="contained" onClick={() => setUploadOpen(true)} sx={{ minWidth: "200px", height: "40px" }}>
+                    {t("documentManagement.uploadDocument", "Upload Document")}
                 </Button>
             </Box>
 
@@ -190,15 +194,15 @@ export default function DocumentManagement() {
                     <Table size="small" stickyHeader sx={{ tableLayout: "fixed", width: "100%" }}>
                         <TableHead sx={{ bgcolor: "action.hover" }}>
                             <TableRow>
-                                <TableCell style={{ width: "50px", fontWeight: "bold" }}>No.</TableCell>
-                                <TableCell style={{ width: "22%", fontWeight: "bold" }}>File name</TableCell>
-                                <TableCell style={{ width: "22%", fontWeight: "bold" }}>Category Name</TableCell>
-                                <TableCell style={{ width: "80px", fontWeight: "bold" }}>Version</TableCell>
-                                <TableCell style={{ width: "11%", fontWeight: "bold" }}>Uploaded by</TableCell>
-                                <TableCell style={{ width: "11%", fontWeight: "bold" }}>Updated by</TableCell>
-                                <TableCell style={{ width: "100px", fontWeight: "bold" }}>Created date</TableCell>
-                                <TableCell style={{ width: "100px", fontWeight: "bold" }}>Updated date</TableCell>
-                                <TableCell style={{ width: "90px", fontWeight: "bold" }} align="center">Action</TableCell>
+                                <TableCell style={{ width: "50px", fontWeight: "bold" }}>{t("documentManagement.colNo", "No.")}</TableCell>
+                                <TableCell style={{ width: "22%", fontWeight: "bold" }}>{t("documentManagement.colDocName", "Document name")}</TableCell>
+                                <TableCell style={{ width: "22%", fontWeight: "bold" }}>{t("documentManagement.colCategoryName", "Category Name")}</TableCell>
+                                <TableCell style={{ width: "80px", fontWeight: "bold" }}>{t("documentManagement.colVersion", "Version")}</TableCell>
+                                <TableCell style={{ width: "11%", fontWeight: "bold" }}>{t("documentManagement.colUploadedBy", "Uploaded by")}</TableCell>
+                                <TableCell style={{ width: "11%", fontWeight: "bold" }}>{t("documentManagement.colUpdatedBy", "Updated by")}</TableCell>
+                                <TableCell style={{ width: "100px", fontWeight: "bold" }}>{t("documentManagement.colCreatedDate", "Created date")}</TableCell>
+                                <TableCell style={{ width: "100px", fontWeight: "bold" }}>{t("documentManagement.colUpdatedDate", "Updated date")}</TableCell>
+                                <TableCell style={{ width: "90px", fontWeight: "bold" }} align="center">{t("documentManagement.colActions", "Action")}</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>

@@ -1,3 +1,5 @@
+import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
@@ -12,6 +14,13 @@ import CategoryManagement from "./CategoryManagement";
 import DocumentManagement from "./DocumentManagement";
 
 function App() {
+  const { i18n } = useTranslation();
+
+  // Helper function to change language across the app
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
+
   const [darkMode, setDarkMode] = useState(
     sessionStorage.getItem("darkMode") === "true"
   );
@@ -24,6 +33,7 @@ function App() {
     palette: {
       mode: darkMode ? "dark" : "light",
     },
+    // Tip: You can optionally add global font configurations here for 'my' or 'ja' 
   });
 
   const [isLoggedIn, setIsLoggedIn] = useState(
@@ -51,6 +61,8 @@ function App() {
                   darkMode={darkMode}
                   setDarkMode={setDarkMode}
                   setIsLoggedIn={setIsLoggedIn}
+                  currentLanguage={i18n.language} // <-- Passed down
+                  changeLanguage={changeLanguage} // <-- Passed down
                 />
               )
             }
@@ -64,6 +76,8 @@ function App() {
                   darkMode={darkMode}
                   setDarkMode={setDarkMode}
                   setIsLoggedIn={setIsLoggedIn}
+                  currentLanguage={i18n.language} // <-- Passed down
+                  changeLanguage={changeLanguage} // <-- Passed down
                 />
               ) : (
                 <Navigate to="/" replace />
@@ -76,7 +90,7 @@ function App() {
             <Route path="/roles" element={<RoleManagement />} />
             <Route path="/categories" element={<CategoryManagement />} />
             <Route path="/documents" element={<DocumentManagement />} />
-            
+
             <Route path="/info" element={<div style={{ padding: "16px" }}>System Information Log Coming Soon</div>} />
             <Route path="/help" element={<div style={{ padding: "16px" }}>Help Desk & Support Center Coming Soon</div>} />
           </Route>

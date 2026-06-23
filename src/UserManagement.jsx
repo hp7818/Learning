@@ -26,8 +26,10 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import ClearIcon from "@mui/icons-material/Clear";
+import { useTranslation } from "react-i18next";
 
 export default function UserManagement() {
+    const { t } = useTranslation();
     const [users, setUsers] = useState([]);
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
@@ -203,7 +205,7 @@ export default function UserManagement() {
         <Box sx={{ width: "100%", height: "calc(100vh - 150px)", display: "flex", flexDirection: "column", gap: 2, p: 1, boxSizing: "border-box" }}>
             <Box sx={{ display: "flex", gap: 2, alignItems: "center", width: "100%" }}>
                 <TextField
-                    label="Search user"
+                    label={t("userManagement.searchPlaceholder", "Search users...")}
                     value={search}
                     size="small"
                     onChange={(e) => {
@@ -222,7 +224,7 @@ export default function UserManagement() {
                     }}
                 />
                 <Button variant="contained" onClick={() => { setError(""); setAddOpen(true); }} sx={{ minWidth: "160px", height: "40px" }}>
-                    Add User
+                    {t("userManagement.addUser", "Add User")}
                 </Button>
             </Box>
 
@@ -235,11 +237,11 @@ export default function UserManagement() {
                     <Table size="small">
                         <TableHead sx={{ bgcolor: "action.hover" }}>
                             <TableRow>
-                                <TableCell sx={{ fontWeight: "bold" }} align="center" width="60">No.</TableCell>
-                                <TableCell sx={{ fontWeight: "bold" }} align="center">User ID</TableCell>
-                                <TableCell sx={{ fontWeight: "bold" }}>Username</TableCell>
-                                <TableCell sx={{ fontWeight: "bold" }}>Role</TableCell>
-                                <TableCell sx={{ fontWeight: "bold" }} align="center" width="160">Actions</TableCell>
+                                <TableCell sx={{ fontWeight: "bold" }} align="center" width="60">{t("userManagement.colNo", "No.")}</TableCell>
+                                <TableCell sx={{ fontWeight: "bold" }} align="center">{t("userManagement.colID", "User ID")}</TableCell>
+                                <TableCell sx={{ fontWeight: "bold" }}>{t("userManagement.colName", "Username")}</TableCell>
+                                <TableCell sx={{ fontWeight: "bold" }}>{t("userManagement.colRole", "Role")}</TableCell>
+                                <TableCell sx={{ fontWeight: "bold" }} align="center" width="160">{t("userManagement.colActions", "Actions")}</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>

@@ -18,10 +18,13 @@ import {
     Typography
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function RoleManagement() {
     const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
     const limit = 10;
+
+    const { t } = useTranslation();
 
     const [roles, setRoles] = useState([]);
     const [search, setSearch] = useState("");
@@ -105,7 +108,7 @@ export default function RoleManagement() {
         <Box sx={{ width: "100%", height: "calc(100vh - 150px)", display: "flex", flexDirection: "column", gap: 2, p: 1, boxSizing: "border-box" }}>
             <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                 <TextField
-                    label="Search role"
+                    label={t("roleManagement.searchPlaceholder", "Search role...")}
                     value={search}
                     size="small"
                     onChange={(e) => {
@@ -115,7 +118,7 @@ export default function RoleManagement() {
                     sx={{ flexGrow: 1, minWidth: 200 }}
                 />
                 <Button variant="contained" onClick={() => { setError(""); setAddOpen(true); }} sx={{ minWidth: "160px", height: "40px" }}>
-                    Add Role
+                    {t("roleManagement.addRole", "Add Role")}
                 </Button>
             </Box>
 
@@ -128,10 +131,10 @@ export default function RoleManagement() {
                     <Table size="small">
                         <TableHead sx={{ bgcolor: "action.hover" }}>
                             <TableRow>
-                                <TableCell sx={{ fontWeight: "bold" }}>No.</TableCell>
-                                <TableCell sx={{ fontWeight: "bold" }}>Role ID</TableCell>
-                                <TableCell sx={{ fontWeight: "bold" }}>Role Name</TableCell>
-                                <TableCell sx={{ fontWeight: "bold" }} width="100">Actions</TableCell>
+                                <TableCell sx={{ fontWeight: "bold" }}>{t("roleManagement.colNo", "No.")}</TableCell>
+                                <TableCell sx={{ fontWeight: "bold" }}>{t("roleManagement.colID", "Role ID")}</TableCell>
+                                <TableCell sx={{ fontWeight: "bold" }}>{t("roleManagement.colRoleName", "Role Name")}</TableCell>
+                                <TableCell sx={{ fontWeight: "bold" }} width="150">{t("roleManagement.colActions", "Actions")}</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
