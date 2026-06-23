@@ -8,13 +8,13 @@ import {
   Box,
   Switch,
   FormControlLabel,
-  FormControl, // Added for language picker
-  Select,      // Added for language picker
-  MenuItem,    // Added for language picker
+  FormControl,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next"; // 1. Import translation hook
+import { useTranslation } from "react-i18next";
 
 export default function Login({ darkMode, setDarkMode, setIsLoggedIn, currentLanguage, changeLanguage }) {
   const [username, setUsername] = useState("");
@@ -24,8 +24,9 @@ export default function Login({ darkMode, setDarkMode, setIsLoggedIn, currentLan
   
   const navigate = useNavigate();
   const theme = useTheme();
-  const { t } = useTranslation(); // 2. Initialize hook
+  const { t } = useTranslation();
   const errorId = "login-error";
+  const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -38,7 +39,7 @@ export default function Login({ darkMode, setDarkMode, setIsLoggedIn, currentLan
 
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:3000/api/login", {
+      const response = await fetch(`${API}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: username.trim(), password: password.trim() }),
@@ -46,9 +47,11 @@ export default function Login({ darkMode, setDarkMode, setIsLoggedIn, currentLan
 
       const data = await response.json();
 
-      if (data.status === "success") {
+      if (data.status === "success" && data.token) {
+        // Store token in localStorage (or sessionStorage for more security)
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("username", data.username);
         sessionStorage.setItem("login", "true");
-        sessionStorage.setItem("username", data.username);
         setIsLoggedIn(true);
         navigate("/dashboard");
       } else {

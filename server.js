@@ -4,27 +4,40 @@ import cors from "cors";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+
+// CORS Configuration - Restricted to allowed origins
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:3000'];
+app.use(cors({
+    origin: allowedOrigins,
+    credentials: true
+}));
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const UPLOADS_DIR = path.resolve('uploads');
 
 // Serve upload files statically
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(UPLOADS_DIR));
 
 // Safety check: Ensure the local storage directory exists
-if (!fs.existsSync("uploads")) {
-    fs.mkdirSync("uploads");
+if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 
 // Configure Multer Disk Storage Configuration
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads/");
+        cb(null, UPLOADS_DIR);
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
+        const safeExt = path.extname(file.originalname).replace(/[^a-z0-9.]/gi, '').toLowerCase();
+        const finalExt = safeExt || '.bin';
+        cb(null, uniqueSuffix + finalExt);
     },
 });
 const upload = multer({ storage: storage });
@@ -53,8 +66,8 @@ CREATE TABLE IF NOT EXISTS categories (
 
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT,
-  password TEXT,
+  username TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
   role_id INTEGER,
   FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL
 );
@@ -88,10 +101,12 @@ if (!adminRoleExists) {
     db.prepare("INSERT INTO roles (name) VALUES (?)").run("Viewer");
 }
 
+// Create default admin user with hashed password
 const userExists = db.prepare("SELECT * FROM users WHERE username=?").get("admin");
 if (!userExists) {
+    const hashedPassword = bcrypt.hashSync("admin123", 10);
     db.prepare("INSERT INTO users (username, password, role_id) VALUES (?, ?, ?)")
-        .run("admin", "admin123", defaultRoleId);
+        .run("admin", hashedPassword, defaultRoleId);
 }
 
 // Seed Real Simplified Categories safely if empty
@@ -107,16 +122,48 @@ if (!categoryExists) {
         .run("Product & Tech", "Architecture Maps", "System layout schematics");
 }
 
+// Middleware: Verify JWT Token
+const verifyToken = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ error: "Unauthorized - Token missing" });
+    }
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (err) {
+        return res.status(403).json({ error: "Unauthorized - Invalid token" });
+    }
+};
+
 // ==========================================
 //                 LOGIN API
 // ==========================================
 app.post("/api/login", (req, res) => {
     const { username, password } = req.body;
-    const user = db.prepare("SELECT * FROM users WHERE username=? AND password=?").get(username, password);
-    if (user) {
-        res.json({ status: "success", username: user.username });
-    } else {
-        res.status(401).json({ status: "fail", error: "Invalid username or password credentials." });
+    
+    if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required" });
+    }
+    
+    try {
+        const user = db.prepare("SELECT * FROM users WHERE username=?").get(username);
+        
+        if (!user || !bcrypt.compareSync(password, user.password)) {
+            return res.status(401).json({ error: "Invalid username or password credentials" });
+        }
+        
+        const token = jwt.sign(
+            { id: user.id, username: user.username, roleId: user.role_id },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+        
+        res.json({ status: "success", username: user.username, token });
+    } catch (err) {
+        console.error("Login error:", err);
+        res.status(500).json({ error: "Server error during authentication" });
     }
 });
 
@@ -148,8 +195,9 @@ app.get("/api/categories", (req, res) => {
             return res.json({ categories, total });
         }
 
-        const limitNum = parseInt(limit);
-        const offset = (parseInt(page) - 1) * limitNum;
+        const limitNum = Math.min(Math.max(parseInt(limit) || 10, 1), 100);
+        const pageNum = Math.max(parseInt(page) || 1, 1);
+        const offset = (pageNum - 1) * limitNum;
 
         const categories = db.prepare(`SELECT * ${baseQueryStr} ORDER BY main_name ASC, sub_name ASC LIMIT ? OFFSET ?`)
             .all(searchParam, searchParam, searchParam, limitNum, offset);
@@ -162,7 +210,7 @@ app.get("/api/categories", (req, res) => {
     }
 });
 
-app.post("/api/categories", (req, res) => {
+app.post("/api/categories", verifyToken, (req, res) => {
     const { mainName, subName, remark } = req.body;
 
     if (!mainName || !mainName.trim()) return res.status(400).json({ error: "Main Category name is required" });
@@ -181,7 +229,7 @@ app.post("/api/categories", (req, res) => {
     }
 });
 
-app.delete("/api/categories", (req, res) => {
+app.delete("/api/categories", verifyToken, (req, res) => {
     const { mainName, subName } = req.query;
     if (!mainName || !subName) return res.status(400).json({ error: "Missing required composite key segments" });
 
@@ -201,8 +249,9 @@ app.get("/api/documents", (req, res) => {
     try {
         const { search = "", page = 1, limit = 10, mainCategory, subCategory } = req.query;
 
-        const limitNum = parseInt(limit);
-        const offset = (parseInt(page) - 1) * limitNum;
+        const limitNum = Math.min(Math.max(parseInt(limit) || 10, 1), 100);
+        const pageNum = Math.max(parseInt(page) || 1, 1);
+        const offset = (pageNum - 1) * limitNum;
 
         let filterConditions = "WHERE (d.doc_name LIKE ? OR d.file_name LIKE ? OR d.uploaded_by LIKE ? OR d.doc_type LIKE ?)";
         let queryParams = [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`];
@@ -212,7 +261,6 @@ app.get("/api/documents", (req, res) => {
             queryParams.push(mainCategory, subCategory);
         }
 
-        // FIXED: Selected all variables required to render your structured React table grid rows
         let queryStr = `
       SELECT d.id, d.doc_name, d.doc_type, d.main_category_name AS main_category, 
              d.sub_category_name AS sub_category, d.version, d.uploaded_by, 
@@ -236,19 +284,24 @@ app.get("/api/documents", (req, res) => {
     }
 });
 
-// FIXED: Version Control Decision Matrix Implementation Endpoint
-app.post("/api/documents/upload", upload.single("file"), (req, res) => {
+app.post("/api/documents/upload", verifyToken, upload.single("file"), (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file asset attached" });
 
     try {
+        // Validate file path is within uploads directory
+        const resolvedFilePath = path.resolve(req.file.path);
+        if (!resolvedFilePath.startsWith(UPLOADS_DIR)) {
+            fs.unlinkSync(req.file.path);
+            return res.status(403).json({ error: "Invalid file path" });
+        }
+
         const rawFileName = req.file.originalname;
         const parsedFile = path.parse(rawFileName);
         const baseNameWithoutExt = parsedFile.name;
-        const normalizedPath = req.file.path.replace(/\\/g, "/");
+        const normalizedPath = resolvedFilePath.replace(/\\/g, "/");
         const timestamp = new Date().toISOString().replace("T", " ").substring(0, 19);
 
-        // Extracted exactly matching frontend FormData payload tags
-        const username = req.body.username || "Admin";
+        const username = req.body.username || req.user.username || "Admin";
         const docType = req.body.docType || "Unassigned";
         const mainCategoryName = req.body.mainCategoryName || null;
         const subCategoryName = req.body.subCategoryName || null;
@@ -257,11 +310,9 @@ app.post("/api/documents/upload", upload.single("file"), (req, res) => {
         let calculatedVersion = "1.0";
         let finalDocName = baseNameWithoutExt;
 
-        // 1. If user supplied a specific override tag via custom text input box
         if (customVersion !== "") {
             calculatedVersion = customVersion;
         } else {
-            // 2. Check if an identical document name exists within the same category workspace
             const existingDoc = db.prepare(`
         SELECT version, created_by FROM documents 
         WHERE doc_name = ? AND main_category_name = ? AND sub_category_name = ?
@@ -271,11 +322,9 @@ app.post("/api/documents/upload", upload.single("file"), (req, res) => {
             if (existingDoc) {
                 const currentVerNum = parseFloat(existingDoc.version);
                 if (!isNaN(currentVerNum)) {
-                    // Increment previous record by 1.0 full step version marks
                     calculatedVersion = (currentVerNum + 1.0).toFixed(1);
                 }
             } else {
-                // 3. Fallback Parse: Look for v_xxx layout inside file name string anywhere
                 const fileVersionMatch = baseNameWithoutExt.match(/v_?(\d+(\.\d+)?)/i);
                 if (fileVersionMatch) {
                     calculatedVersion = parseFloat(fileVersionMatch[1]).toFixed(1);
@@ -283,7 +332,6 @@ app.post("/api/documents/upload", upload.single("file"), (req, res) => {
             }
         }
 
-        // Capture the original uploader tracking identity safely
         const originalDoc = db.prepare(`
       SELECT created_by FROM documents 
       WHERE doc_name = ? AND main_category_name = ? AND sub_category_name = ? 
@@ -304,13 +352,18 @@ app.post("/api/documents/upload", upload.single("file"), (req, res) => {
     }
 });
 
-// FIXED: Created direct route mapping to handle front-end row viewing clicks
 app.get("/api/documents/view/:id", (req, res) => {
     try {
         const doc = db.prepare("SELECT file_path FROM documents WHERE id = ?").get(req.params.id);
         if (!doc) return res.status(404).json({ error: "Document not found" });
 
         const resolvedPath = path.resolve(doc.file_path);
+        
+        // Path traversal protection
+        if (!resolvedPath.startsWith(UPLOADS_DIR)) {
+            return res.status(403).json({ error: "Access denied" });
+        }
+        
         if (!fs.existsSync(resolvedPath)) {
             return res.status(404).json({ error: "Physical file missing from storage disk" });
         }
@@ -328,6 +381,12 @@ app.get("/api/documents/download/:id", (req, res) => {
         if (!doc) return res.status(404).json({ error: "Requested document target not found" });
 
         const resolvedPath = path.resolve(doc.file_path);
+        
+        // Path traversal protection
+        if (!resolvedPath.startsWith(UPLOADS_DIR)) {
+            return res.status(403).json({ error: "Access denied" });
+        }
+        
         if (!fs.existsSync(resolvedPath)) {
             return res.status(404).json({ error: "Physical system asset missing from disk storage" });
         }
@@ -339,7 +398,7 @@ app.get("/api/documents/download/:id", (req, res) => {
     }
 });
 
-app.delete("/api/documents/:id", (req, res) => {
+app.delete("/api/documents/:id", verifyToken, (req, res) => {
     try {
         const targetDoc = db.prepare("SELECT file_path FROM documents WHERE id = ?").get(req.params.id);
         if (targetDoc && fs.existsSync(targetDoc.file_path)) {
@@ -366,8 +425,9 @@ app.get("/api/roles", (req, res) => {
             return res.json({ roles, total: roles.length });
         }
 
-        const limitNum = parseInt(limit);
-        const offset = (parseInt(page) - 1) * limitNum;
+        const limitNum = Math.min(Math.max(parseInt(limit) || 10, 1), 100);
+        const pageNum = Math.max(parseInt(page) || 1, 1);
+        const offset = (pageNum - 1) * limitNum;
 
         const roles = db.prepare(`SELECT * ${baseQuery} ORDER BY id ASC LIMIT ? OFFSET ?`)
             .all(searchParam, limitNum, offset);
@@ -380,22 +440,22 @@ app.get("/api/roles", (req, res) => {
     }
 });
 
-app.post("/api/roles", (req, res) => {
+app.post("/api/roles", verifyToken, (req, res) => {
     const { name } = req.body;
-    if (!name || !name.trim()) return res.status(400).send("Role name is explicitly required");
+    if (!name || !name.trim()) return res.status(400).json({ error: "Role name is explicitly required" });
 
     try {
         db.prepare("INSERT INTO roles (name) VALUES (?)").run(name.trim());
-        res.status(201).send("Role created");
+        res.status(201).json({ message: "Role created" });
     } catch (err) {
         if (err.message.includes("UNIQUE constraint failed")) {
-            return res.status(400).send("This identity role label value already exists");
+            return res.status(400).json({ error: "This identity role label value already exists" });
         }
-        res.status(500).send("Database error processing creation context");
+        res.status(500).json({ error: "Database error processing creation context" });
     }
 });
 
-app.delete("/api/roles/:id", (req, res) => {
+app.delete("/api/roles/:id", verifyToken, (req, res) => {
     try {
         const result = db.prepare("DELETE FROM roles WHERE id = ?").run(req.params.id);
         if (result.changes === 0) return res.status(404).json({ error: "Target structural role not found" });
@@ -407,33 +467,48 @@ app.delete("/api/roles/:id", (req, res) => {
 
 app.get("/api/users", (req, res) => {
     const { search = "", page = 1, limit = 10 } = req.query;
-    const limitNum = parseInt(limit);
-    const offset = (parseInt(page) - 1) * limitNum;
+    
+    const limitNum = Math.min(Math.max(parseInt(limit) || 10, 1), 100);
+    const pageNum = Math.max(parseInt(page) || 1, 1);
+    const offset = (pageNum - 1) * limitNum;
 
-    const users = db.prepare(`
-    SELECT users.id, users.username, users.role_id AS roleId, roles.name AS roleName
-    FROM users
-    LEFT JOIN roles ON users.role_id = roles.id
-    WHERE users.username LIKE ?
-    ORDER BY users.id ASC LIMIT ? OFFSET ?
-  `).all(`%${search}%`, limitNum, offset);
+    try {
+        const users = db.prepare(`
+        SELECT users.id, users.username, users.role_id AS roleId, roles.name AS roleName
+        FROM users
+        LEFT JOIN roles ON users.role_id = roles.id
+        WHERE users.username LIKE ?
+        ORDER BY users.id ASC LIMIT ? OFFSET ?
+      `).all(`%${search}%`, limitNum, offset);
 
-    const total = db.prepare("SELECT COUNT(*) as count FROM users WHERE username LIKE ?").get(`%${search}%`).count;
-    res.json({ users, total });
+        const total = db.prepare("SELECT COUNT(*) as count FROM users WHERE username LIKE ?").get(`%${search}%`).count;
+        res.json({ users, total });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to fetch users" });
+    }
 });
 
-app.post("/api/users", (req, res) => {
+app.post("/api/users", verifyToken, (req, res) => {
     const { username, password, roleId } = req.body;
+    
+    if (!username || !username.trim() || !password || !password.trim() || !roleId) {
+        return res.status(400).json({ error: "Username, password, and role are required" });
+    }
+    
     try {
+        const hashedPassword = bcrypt.hashSync(password, 10);
         db.prepare("INSERT INTO users (username, password, role_id) VALUES (?, ?, ?)")
-            .run(username, password, roleId);
+            .run(username.trim(), hashedPassword, roleId);
         res.status(201).json({ message: "User profile established" });
     } catch (err) {
+        if (err.message.includes("UNIQUE constraint failed")) {
+            return res.status(400).json({ error: "Username already exists" });
+        }
         res.status(500).json({ error: "Failed to compile user assignment record" });
     }
 });
 
-app.put("/api/users/:id", (req, res) => {
+app.put("/api/users/:id", verifyToken, (req, res) => {
     const { username, roleId } = req.body;
     const { id } = req.params;
 
@@ -446,16 +521,19 @@ app.put("/api/users/:id", (req, res) => {
       UPDATE users 
       SET username = ?, role_id = ? 
       WHERE id = ?
-    `).run(username, roleId, id);
+    `).run(username.trim(), roleId, id);
 
         if (result.changes === 0) return res.status(404).json({ error: "User resource item target missing" });
         res.json({ message: "User profile record revised successfully" });
     } catch (err) {
+        if (err.message.includes("UNIQUE constraint failed")) {
+            return res.status(400).json({ error: "Username already exists" });
+        }
         res.status(500).json({ error: "Database exception processing alterations" });
     }
 });
 
-app.delete("/api/users/:id", (req, res) => {
+app.delete("/api/users/:id", verifyToken, (req, res) => {
     try {
         db.prepare("DELETE FROM users WHERE id=?").run(req.params.id);
         res.json({ message: "User account dropped" });
@@ -465,6 +543,7 @@ app.delete("/api/users/:id", (req, res) => {
 });
 
 // ---------- START SERVER ----------
-app.listen(3000, () => {
-    console.log("✅ Server running on http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`✅ Server running on http://localhost:${PORT}`);
 });

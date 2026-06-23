@@ -1,7 +1,7 @@
 {
   "name": "learning",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.1.0",
   "type": "module",
   "scripts": {
     "lint": "eslint \"src/**/*.{js,jsx}\"",
@@ -14,12 +14,14 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^9.0.1",
     "@mui/material": "^9.0.1",
+    "bcrypt": "^5.1.1",
     "better-sqlite3": "^12.10.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "i18next": "^26.3.1",
     "i18next-browser-languagedetector": "^8.2.1",
     "i18next-http-backend": "^4.0.0",
+    "jsonwebtoken": "^9.1.2",
     "multer": "^2.1.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
